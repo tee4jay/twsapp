@@ -1,5 +1,6 @@
 using IBApi;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,11 +16,14 @@ namespace TwsClient
         public readonly EReaderSignal Signal;
         //! [socket_declare]
 
+        private BlockingCollection<string> _messages;
+
         //! [socket_init]
-        public EWrapperImpl()
+        public EWrapperImpl(BlockingCollection<string> messages)
         {
             Signal = new EReaderMonitorSignal();
             clientSocket = new EClientSocket(this, Signal);
+            _messages = messages;
         }
         //! [socket_init]
 
@@ -66,14 +70,9 @@ namespace TwsClient
         }
 
         //! [tickprice]
-        public event EventHandler<PriceTickedEventArgs> PriceTicked;
         public virtual void tickPrice(int tickerId, int field, double price, TickAttrib attribs)
         {
-            var handler = PriceTicked;
-            if (handler != null)
-            {
-                handler(this, new PriceTickedEventArgs(price));
-            }
+            _messages.Add($"Price: {price}");
 
             Console.WriteLine("Tick Price. Ticker Id:" + tickerId + ", Field: " + field + ", Price: " + price + ", CanAutoExecute: " + attribs.CanAutoExecute +
                 ", PastLimit: " + attribs.PastLimit + ", PreOpen: " + attribs.PreOpen);

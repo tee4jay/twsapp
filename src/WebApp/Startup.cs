@@ -27,8 +27,8 @@ namespace WebApp
         {
             services.AddRazorPages();
             services.AddSignalR();
-            services.AddHostedService<MonitorMarketDataService>();
             services.AddSingleton<IMarketData, MarketData>();
+            services.AddHostedService<MonitorMarketDataService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

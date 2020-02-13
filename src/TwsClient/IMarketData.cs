@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 
 namespace TwsClient
 {
     public interface IMarketData
     {
-        event EventHandler<PriceTickedEventArgs> PriceTicked;
-
+        BlockingCollection<string> Messages { get; }
         void Start();
         void Stop();
     }

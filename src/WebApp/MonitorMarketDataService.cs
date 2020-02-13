@@ -17,46 +17,47 @@ namespace WebApp
         public MonitorMarketDataService(
             ILogger<MonitorMarketDataService> logger,
             IHubContext<TwsHub> hubContext,
-            IMarketData marketData
-            )
+            IMarketData marketData)
         {
             _logger = logger;
             _hubContext = hubContext;
             _marketData = marketData;
-
-            _marketData.PriceTicked += marketData_PriceTicked;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogDebug($"GracePeriodManagerService is starting.");
 
             stoppingToken.Register(() =>
                 _logger.LogDebug($" GracePeriod background task is stopping."));
 
-            _marketData.Start();
+            return Task.Run(async () => {
+                var messages = _marketData.Messages;
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogDebug($"GracePeriod task doing background work.");
+                _marketData.Start();
 
-                // This eShopOnContainers method is querying a database table
-                // and publishing events into the Event Bus (RabbitMQ / ServiceBus)
-                //CheckConfirmedGracePeriodOrders();
-                //await _hubContext.Clients.All.SendAsync("ReceiveMessage", "background", "Time: " + DateTime.Now);
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    var item = messages.Take(stoppingToken);
 
-                await Task.Delay(1000, stoppingToken);
-            }
+                    _logger.LogDebug($"GracePeriod task doing background work.");
 
-            _marketData.Stop();
+                    // This eShopOnContainers method is querying a database table
+                    // and publishing events into the Event Bus (RabbitMQ / ServiceBus)
+                    //CheckConfirmedGracePeriodOrders();
+                    //await _hubContext.Clients.All.SendAsync("ReceiveMessage", "background", "Time: " + DateTime.Now);
 
-            _logger.LogDebug($"GracePeriod background task is stopping.");
+                    Console.WriteLine("PriceTicked: " + item);
+                    await _hubContext.Clients.All.SendAsync("ReceiveMessage", "PriceTicked", item);
+
+                    //await Task.Delay(1000, stoppingToken);
+                }
+
+                _marketData.Stop();
+
+                _logger.LogDebug($"GracePeriod background task is stopping.");
+            });
         }
 
-        private void marketData_PriceTicked(object sender, PriceTickedEventArgs e)
-        {
-            //Console.WriteLine("PriceTicked: " + e.Price);
-            Task.Run(async () => await _hubContext.Clients.All.SendAsync("ReceiveMessage", "PriceTicked", e.Price)).Wait();
-        }
     }
 }

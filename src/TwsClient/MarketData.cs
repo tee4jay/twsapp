@@ -1,26 +1,24 @@
 using IBApi;
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
 
 namespace TwsClient
 {
     public class MarketData : IMarketData
     {
-        private EWrapperImpl _eWrapper = new EWrapperImpl();
+        private EWrapperImpl _eWrapper;
+        private BlockingCollection<string> _messages;
+
+        public BlockingCollection<string> Messages
+        {
+            get { return _messages; }
+        }
 
         public MarketData()
         {
-            _eWrapper.PriceTicked += OnPriceTicked;
-        }
-
-        public event EventHandler<PriceTickedEventArgs> PriceTicked;
-        private void OnPriceTicked(object sender, PriceTickedEventArgs e)
-        {
-            var handler = PriceTicked;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
+            _messages = new BlockingCollection<string>();
+            _eWrapper = new EWrapperImpl(_messages);
         }
 
         public void Start()
@@ -58,6 +56,7 @@ namespace TwsClient
         {
             _eWrapper.ClientSocket.cancelMktData(1001);
             _eWrapper.ClientSocket.eDisconnect();
+            _messages.CompleteAdding();
         }
     }
 }
