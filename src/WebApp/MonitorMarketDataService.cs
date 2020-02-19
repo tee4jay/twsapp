@@ -13,15 +13,21 @@ namespace WebApp
     {
         private readonly ILogger<MonitorMarketDataService> _logger;
         private readonly IHubContext<TwsHub> _hubContext;
-        private readonly IMarketData _marketData;
+        private readonly MarketData _marketData;
         public MonitorMarketDataService(
             ILogger<MonitorMarketDataService> logger,
             IHubContext<TwsHub> hubContext,
-            IMarketData marketData)
+            MarketData marketData)
         {
             _logger = logger;
             _hubContext = hubContext;
             _marketData = marketData;
+            _marketData.MarketDataTicked += marketData_Ticked;
+        }
+
+        private async void marketData_Ticked(object sender, MarketDataTickedEventArgs e)
+        {
+            await _hubContext.Clients.All.SendAsync("ReceiveMessage", e.Type, e.MarketDataTicked);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -31,14 +37,12 @@ namespace WebApp
             stoppingToken.Register(() =>
                 _logger.LogDebug($" GracePeriod background task is stopping."));
 
-            return Task.Run(async () => {
-                var messages = _marketData.Messages;
-
+            return Task.Run(() => {
                 _marketData.Start();
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    var item = messages.Take(stoppingToken);
+                    //var item = messages.Take(stoppingToken);
 
                     _logger.LogDebug($"GracePeriod task doing background work.");
 
@@ -47,8 +51,8 @@ namespace WebApp
                     //CheckConfirmedGracePeriodOrders();
                     //await _hubContext.Clients.All.SendAsync("ReceiveMessage", "background", "Time: " + DateTime.Now);
 
-                    Console.WriteLine("PriceTicked: " + item);
-                    await _hubContext.Clients.All.SendAsync("ReceiveMessage", "PriceTicked", item);
+                    //Console.WriteLine("PriceTicked: " + item);
+                    //await _hubContext.Clients.All.SendAsync("ReceiveMessage", "PriceTicked", item);
 
                     //await Task.Delay(1000, stoppingToken);
                 }

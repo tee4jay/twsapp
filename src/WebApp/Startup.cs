@@ -27,7 +27,7 @@ namespace WebApp
         {
             services.AddRazorPages();
             services.AddSignalR();
-            services.AddSingleton<IMarketData, MarketData>();
+            services.AddSingleton<MarketData>();
             services.AddHostedService<MonitorMarketDataService>();
         }
 
@@ -49,8 +49,6 @@ namespace WebApp
             app.UseStaticFiles();
 
             app.UseRouting();
-
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

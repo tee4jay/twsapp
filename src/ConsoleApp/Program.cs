@@ -8,7 +8,6 @@ namespace ConsoleApp
         static void Main(string[] args)
         {
             var marketData = new MarketData();
-            marketData.PriceTicked += marketData_PriceTicked;
 
             marketData.Start();
             Console.WriteLine("Press any key to stop...");
