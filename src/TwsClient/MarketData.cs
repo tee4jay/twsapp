@@ -272,7 +272,7 @@ namespace TwsClient
 
         public void commissionReport(CommissionReport commissionReport)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("CommissionReport. " + commissionReport.ExecId + " - " + commissionReport.Commission + " " + commissionReport.Currency + " RPNL " + commissionReport.RealizedPNL);
         }
 
         public void fundamentalData(int reqId, string data)

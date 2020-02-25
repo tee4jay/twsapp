@@ -14,7 +14,7 @@ connection.on("ReceiveMessage", function (user, message) {
 connection.on("RtvTicked", function (rtv) {
     var fields =
         "<td>" + rtv.price + "</td>" +
-        "<td>" + (rtv.price - rtv.prevPrice) + "</td>" +
+        "<td class=\"dir" + rtv.direction + "\">" + (rtv.price - rtv.prevPrice) + "</td>" +
         "<td>" + rtv.size + "</td>" +
         "<td>" + (rtv.unixTime - rtv.prevUnixTime) + "</td>" +
         "<td>" + rtv.vwap.toFixed(2) + "</td>" +
