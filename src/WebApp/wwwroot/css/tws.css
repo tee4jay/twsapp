@@ -6,6 +6,20 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
+    font-size: 11px;
+    font-family: Calibri;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #808080;
+}
+
+td {
+    padding: 8px;
 }
 
 .container {

@@ -22,12 +22,12 @@ namespace WebApp
             _logger = logger;
             _hubContext = hubContext;
             _marketData = marketData;
-            _marketData.MarketDataTicked += marketData_Ticked;
+            _marketData.RtvTicked += marketData_RtvTicked;
         }
 
-        private async void marketData_Ticked(object sender, MarketDataTickedEventArgs e)
+        private async void marketData_RtvTicked(object sender, RtvTickedEventArgs e)
         {
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", e.Type, e.MarketDataTicked);
+            await _hubContext.Clients.All.SendAsync("RtvTicked", e.Rtv);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)

@@ -7,11 +7,22 @@
 </head>
 <body>
     <div class="container">
+        <table id="tickString">
+            <thead>
+                <tr>
+                    <th>Price</th>
+                    <th>PDiff</th>
+                    <th>Size</th>
+                    <th>Time</th>
+                    <th>Vwap</th>
+                    <th>???</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
         <div id="tickSize">
             <div>Size</div>
-        </div>
-        <div id="tickString">
-            <div>String</div>
         </div>
         <div id="tickPrice">
             <div>Price</div>
@@ -21,6 +32,7 @@
         </div>
     </div>
 
+    <script src="lib/jquery/dist/jquery.min.js"></script>
     <script src="js/signalr/dist/browser/signalr.min.js"></script>
     <script src="js/tws.js"></script>
 </body>

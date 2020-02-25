@@ -1,4 +1,5 @@
 using System;
+using TwsClient.Models;
 
 namespace TwsClient
 {
@@ -21,6 +22,16 @@ namespace TwsClient
         {
             this.Type = type;
             this.MarketDataTicked = message;
+        }
+    }
+
+    public class RtvTickedEventArgs : EventArgs
+    {
+        public RTVolume Rtv { get; private set; }
+
+        public RtvTickedEventArgs(RTVolume rtv)
+        {
+            this.Rtv = rtv;
         }
     }
 }

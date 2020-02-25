@@ -3,25 +3,25 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using TwsClient.Models;
 
 namespace TwsClient
 {
     public class MarketData : EWrapper
     {
-        EClientSocket _clientSocket;
-        EReaderMonitorSignal _readerSignal;
-        int _nextOrderId;
-        int _tickerId;
-        string _bboExchange;
+        private const int RTV_LIST_MAX_COUNT = 1000;
 
-        public EventHandler<MarketDataTickedEventArgs> MarketDataTicked;
-        protected void OnMarketDataTicked(string type, string message)
+        private EClientSocket _clientSocket;
+        private EReaderMonitorSignal _readerSignal;
+        private int _nextOrderId;
+        private int _tickerId;
+        private string _bboExchange;
+        private List<RTVolume> _rtvList = new List<RTVolume>();
+
+        public EventHandler<RtvTickedEventArgs> RtvTicked;
+        protected void OnRtvTicked(RTVolume rtv)
         {
-            var handler = MarketDataTicked;
-            if (handler != null)
-            {
-                handler(this, new MarketDataTickedEventArgs(type, message));
-            }
+            RtvTicked?.Invoke(this, new RtvTickedEventArgs(rtv));
         }
 
         public MarketData()
@@ -66,6 +66,31 @@ namespace TwsClient
             _clientSocket.eDisconnect();
         }
 
+        #region Helpers
+
+        private void ProcessRtvTicked(string value)
+        {
+            var rtv = new RTVolume(value);
+
+            if (_rtvList.Count > 0)
+            {
+                rtv.PrevPrice = _rtvList[0].Price;
+                rtv.PrevUnixTime = _rtvList[0].UnixTime;
+            }
+
+            OnRtvTicked(rtv);
+
+            _rtvList.Insert(0, rtv);
+
+            if (_rtvList.Count > RTV_LIST_MAX_COUNT)
+            {
+                _rtvList.RemoveAt(RTV_LIST_MAX_COUNT - 1);
+            }
+            
+        }
+
+        #endregion
+
         #region EWrapper Implementation
 
         public void error(Exception e)
@@ -90,25 +115,43 @@ namespace TwsClient
 
         public void tickPrice(int tickerId, int field, double price, TickAttrib attribs)
         {
-            var message = "Tick Price. Ticker Id:" + tickerId + ", Field: " + field + ", Price: " + price + ", CanAutoExecute: " + attribs.CanAutoExecute +
-                ", PastLimit: " + attribs.PastLimit + ", PreOpen: " + attribs.PreOpen;
-            OnMarketDataTicked("tickPrice", message);
+            var now = DateTime.Now;
+            
+            //var message = "Tick Price. Ticker Id:" + tickerId + ", Field: " + field + ", Price: " + price + ", CanAutoExecute: " + attribs.CanAutoExecute +
+            //    ", PastLimit: " + attribs.PastLimit + ", PreOpen: " + attribs.PreOpen;
+
+            var message = now.ToString("MMdd hh:mm:ss:ffff") + "-" + field + "-" + price + "-" + attribs.toString();
+
+            //OnMarketDataTicked("tickPrice", message);
 
             Console.WriteLine(message);
         }
 
         public void tickSize(int tickerId, int field, int size)
         {
-            var message = "Tick Size. Ticker Id:" + tickerId + ", Field: " + field + ", Size: " + size;
-            OnMarketDataTicked("tickSize", message);
+            var now = DateTime.Now;
+
+            //var message = "Tick Size. Ticker Id:" + tickerId + ", Field: " + field + ", Size: " + size;
+
+            var message = now.ToString("MMdd hh:mm:ss:ffff") + "-" + field + "-" + size;
+
+           // OnMarketDataTicked("tickSize", message);
 
             Console.WriteLine(message);
         }
 
         public void tickString(int tickerId, int field, string value)
         {
-            var message = "Tick string. Ticker Id:" + tickerId + ", field: " + field + ", Value: " + value;
-            OnMarketDataTicked("tickString", message);
+            var now = DateTime.Now;
+
+            if (field == TickType.RT_VOLUME)
+            {
+                ProcessRtvTicked(value);
+            }
+
+            //var message = "Tick string. Ticker Id:" + tickerId + ", field: " + field + ", Value: " + value;
+
+            var message = now.ToString("MMdd hh:mm:ss:ffff") + "-" + field + "-" + value;
 
             Console.WriteLine(message);
         }
@@ -116,7 +159,7 @@ namespace TwsClient
         public void tickGeneric(int tickerId, int field, double value)
         {
             var message = "Tick Generic. Ticker Id:" + tickerId + ", Field: " + field + ", Value: " + value;
-            OnMarketDataTicked("tickGeneric", message);
+            //OnMarketDataTicked("tickGeneric", message);
 
             Console.WriteLine(message);
         }
