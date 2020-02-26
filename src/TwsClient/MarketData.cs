@@ -28,6 +28,7 @@ namespace TwsClient
         {
             _readerSignal = new EReaderMonitorSignal();
             _clientSocket = new EClientSocket(this, _readerSignal);
+            _rtvList.Add(new RTVolume(null));
         }
 
         public void Start()
@@ -71,12 +72,9 @@ namespace TwsClient
         private void ProcessRtvTicked(string value)
         {
             var rtv = new RTVolume(value);
-
-            if (_rtvList.Count > 0)
-            {
-                rtv.PrevPrice = _rtvList[0].Price;
-                rtv.PrevUnixTime = _rtvList[0].UnixTime;
-            }
+            rtv.Direction = _rtvList[0].Direction;
+            rtv.PrevPrice = _rtvList[0].Price;
+            rtv.PrevUnixTime = _rtvList[0].UnixTime;
 
             OnRtvTicked(rtv);
 
@@ -86,7 +84,7 @@ namespace TwsClient
             {
                 _rtvList.RemoveAt(RTV_LIST_MAX_COUNT - 1);
             }
-            
+
         }
 
         #endregion
@@ -95,12 +93,13 @@ namespace TwsClient
 
         public void error(Exception e)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Exception thrown: " + e);
+            throw e;
         }
 
         public void error(string str)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Error: " + str + "\n");
         }
 
         public void error(int id, int errorCode, string errorMsg)

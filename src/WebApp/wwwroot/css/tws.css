@@ -32,10 +32,26 @@ td {
         overflow-y: auto;
     }
 
-dird {
-    color: red;
+.dird {
+    background-color: #FA8072;
 }
 
-diru {
-    color: green;
+.diru {
+    background-color: #66CDAA;
+}
+
+.sizes {
+    background-color: #FFEBCD;
+}
+
+.sizem {
+    background-color: #DEB887;
+}
+
+.sizel {
+    background-color: #CD853F;
+}
+
+.sizexl {
+    background-color: #A0522D;
 }

@@ -37,7 +37,7 @@ namespace WebApp
             stoppingToken.Register(() =>
                 _logger.LogDebug($" GracePeriod background task is stopping."));
 
-            return Task.Run(() => {
+            return Task.Run(async () => {
                 _marketData.Start();
 
                 while (!stoppingToken.IsCancellationRequested)
@@ -54,7 +54,7 @@ namespace WebApp
                     //Console.WriteLine("PriceTicked: " + item);
                     //await _hubContext.Clients.All.SendAsync("ReceiveMessage", "PriceTicked", item);
 
-                    //await Task.Delay(1000, stoppingToken);
+                    await Task.Delay(1000, stoppingToken);
                 }
 
                 _marketData.Stop();

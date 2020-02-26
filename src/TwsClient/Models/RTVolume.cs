@@ -33,6 +33,7 @@ namespace TwsClient.Models
             set { _direction = value; }
         }
         public int Size { get; set; }
+        public string SizeCode { get; set; }
         public long UnixTime { get; set; }
         public long PrevUnixTime { get; set; }
         public int TotalVolume { get; set; }
@@ -53,6 +54,10 @@ namespace TwsClient.Models
                     this.TotalVolume = int.Parse(values[3]);
                     this.Vwap = double.Parse(values[4]);
                     this.IsSingleMarketMaker = bool.Parse(values[5]);
+
+                    this.SizeCode = this.Size < 10 ? "s"
+                        : (this.Size >= 10 && this.Size < 50 ? "m"
+                        : (this.Size >= 50 && this.Size < 100 ? "l" : "xl"));
                     this.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(this.UnixTime).LocalDateTime;
                 }
             }
