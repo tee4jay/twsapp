@@ -12,17 +12,26 @@ connection.on("ReceiveMessage", function (user, message) {
 });
 
 connection.on("RtvTicked", function (rtv) {
-    var fields =
-        "<td>" + rtv.price + "</td>" +
-        "<td class=\"dir" + rtv.direction + "\">" + (rtv.price - rtv.prevPrice) + "</td>" +
-        "<td class=\"size" + rtv.sizeCode + "\">" + rtv.size + "</td>" +
-        "<td>" + (rtv.isSingleMarketMaker ? "true" : "FALSE") + "</td>" +
-        "<td>" + (rtv.unixTime - rtv.prevUnixTime) + "</td>" +
-        "<td>" + rtv.vwap.toFixed(2) + "</td>";
+    if (rtv.price === rtv.prevPrice) {
+        var $tr = $("#tickString > tbody > tr:first-child");
+        $tr.find(":nth-child(3)").text(rtv.size);
+        $tr.find(":nth-child(3)").attr("class", "size" + rtv.sizeCode);
+        $tr.find(":nth-child(4)").text(rtv.isSingleMarketMaker ? "true" : "FALSE");
+        $tr.find(":nth-child(5)").text(rtv.unixTime - rtv.prevUnixTime);
+        $tr.find(":nth-child(6)").text(rtv.vwap.toFixed(2));
+    }
+    else {
+        var fields =
+            "<td>" + rtv.price + "</td>" +
+            "<td class=\"dir" + rtv.direction + "\">" + (rtv.price - rtv.prevPrice) + "</td>" +
+            "<td class=\"size" + rtv.sizeCode + "\">" + rtv.size + "</td>" +
+            "<td>" + (rtv.isSingleMarketMaker ? "true" : "FALSE") + "</td>" +
+            "<td>" + (rtv.unixTime - rtv.prevUnixTime) + "</td>" +
+            "<td>" + rtv.vwap.toFixed(2) + "</td>";
 
-    $('#tickString > tbody')
-        .prepend('<tr>' + fields + '</tr>');
-
+        $('#tickString > tbody')
+            .prepend('<tr>' + fields + '</tr>');
+    }
 });
 
 connection.start().then(function () {

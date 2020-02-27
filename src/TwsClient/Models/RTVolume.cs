@@ -7,40 +7,37 @@ namespace TwsClient.Models
     public class RTVolume
     {
         public DateTime Timestamp { get; set; }
-
-        private double _price;
-        public double Price
-        {
-            get { return _price; }
-            set { _price = value; }
-        }
-
-        private double _prevPrice;
-        public double PrevPrice
-        {
-            get { return _prevPrice; }
-            set
-            {
-                _prevPrice = value;
-                CheckDirection();
-            }
-        }
-
-        private string _direction;
+        public double Price { get; set; }
+        public double PrevPrice { get; set; }
         public string Direction
         {
-            get { return _direction; }
-            set { _direction = value; }
+            get {
+                var diff = this.Price - this.PrevPrice;
+                if (diff != 0)
+                {
+                    return (diff < 0 ? "d" : "u");
+                }
+
+                return "n";
+            }
         }
         public int Size { get; set; }
-        public string SizeCode { get; set; }
+        public string SizeCode
+        {
+            get
+            {
+                return this.Size < 10 ? "s"
+                        : (this.Size >= 10 && this.Size < 50 ? "m"
+                        : (this.Size >= 50 && this.Size < 100 ? "l" : "xl"));
+            }
+        }
         public long UnixTime { get; set; }
         public long PrevUnixTime { get; set; }
         public int TotalVolume { get; set; }
         public double Vwap { get; set; }
         public bool IsSingleMarketMaker { get; set; }
 
-        public RTVolume(string tickString)
+        public RTVolume(string tickString, double prevPrize, long prevUnixTime, int prevSize)
         {
             if (!String.IsNullOrWhiteSpace(tickString))
             {
@@ -55,22 +52,16 @@ namespace TwsClient.Models
                     this.Vwap = double.Parse(values[4]);
                     this.IsSingleMarketMaker = bool.Parse(values[5]);
 
-                    this.SizeCode = this.Size < 10 ? "s"
-                        : (this.Size >= 10 && this.Size < 50 ? "m"
-                        : (this.Size >= 50 && this.Size < 100 ? "l" : "xl"));
                     this.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(this.UnixTime).LocalDateTime;
+                    this.PrevPrice = prevPrize;
+                    this.PrevUnixTime = prevUnixTime;
+
+                    if (prevPrize == this.Price)
+                    {
+                        this.Size += prevSize;
+                    }
                 }
             }
         }
-
-        private void CheckDirection()
-        {
-            var diff = _price - _prevPrice;
-            if (diff != 0)
-            {
-                _direction = (diff < 0 ? "d" : "u");
-            }
-        }
-
     }
 }

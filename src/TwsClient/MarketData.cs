@@ -28,7 +28,7 @@ namespace TwsClient
         {
             _readerSignal = new EReaderMonitorSignal();
             _clientSocket = new EClientSocket(this, _readerSignal);
-            _rtvList.Add(new RTVolume(null));
+            _rtvList.Add(new RTVolume(null, 0, 0, 0));
         }
 
         public void Start()
@@ -71,10 +71,8 @@ namespace TwsClient
 
         private void ProcessRtvTicked(string value)
         {
-            var rtv = new RTVolume(value);
-            rtv.Direction = _rtvList[0].Direction;
-            rtv.PrevPrice = _rtvList[0].Price;
-            rtv.PrevUnixTime = _rtvList[0].UnixTime;
+            var prevRtv = _rtvList[0];
+            var rtv = new RTVolume(value, prevRtv.Price, prevRtv.UnixTime, prevRtv.Size);
 
             OnRtvTicked(rtv);
 
