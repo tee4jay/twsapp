@@ -21,14 +21,24 @@ namespace TwsClient.Models
                 return "n";
             }
         }
+        public int TickSize { get; set; }
         public int Size { get; set; }
+        public double SizePercent
+        {
+            get
+            {
+                return ((double)this.Size / (double)this.TotalVolume) * 100;
+            }
+        }
         public string SizeCode
         {
             get
             {
-                return this.Size < 10 ? "s"
-                        : (this.Size >= 10 && this.Size < 50 ? "m"
-                        : (this.Size >= 50 && this.Size < 100 ? "l" : "xl"));
+                var percent = this.SizePercent;
+
+                return percent < 10 ? "s"
+                        : (percent >= 10 && percent < 50 ? "m"
+                        : (percent >= 50 && percent < 100 ? "l" : "xl"));
             }
         }
         public long UnixTime { get; set; }
@@ -37,7 +47,7 @@ namespace TwsClient.Models
         public double Vwap { get; set; }
         public bool IsSingleMarketMaker { get; set; }
 
-        public RTVolume(string tickString, double prevPrize, long prevUnixTime, int prevSize)
+        public RTVolume(string tickString)
         {
             if (!String.IsNullOrWhiteSpace(tickString))
             {
@@ -46,20 +56,14 @@ namespace TwsClient.Models
                 if (values.Length == 6)
                 {
                     this.Price = double.Parse(values[0]);
-                    this.Size = int.Parse(values[1]);
+                    this.TickSize = int.Parse(values[1]);
                     this.UnixTime = long.Parse(values[2]);
                     this.TotalVolume = int.Parse(values[3]);
                     this.Vwap = double.Parse(values[4]);
                     this.IsSingleMarketMaker = bool.Parse(values[5]);
 
+                    this.Size = this.TickSize;
                     this.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(this.UnixTime).LocalDateTime;
-                    this.PrevPrice = prevPrize;
-                    this.PrevUnixTime = prevUnixTime;
-
-                    if (prevPrize == this.Price)
-                    {
-                        this.Size += prevSize;
-                    }
                 }
             }
         }

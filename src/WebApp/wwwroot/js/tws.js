@@ -1,5 +1,6 @@
 "use strict";
 
+var $prevTr = $();
 var connection = new signalR.HubConnectionBuilder().withUrl("/twsHub").build();
 
 connection.on("ReceiveMessage", function (user, message) {
@@ -12,26 +13,44 @@ connection.on("ReceiveMessage", function (user, message) {
 });
 
 connection.on("RtvTicked", function (rtv) {
-    if (rtv.price === rtv.prevPrice) {
-        var $tr = $("#tickString > tbody > tr:first-child");
-        $tr.find(":nth-child(3)").text(rtv.size);
+    var $tr = null;
+    var price = 0.00;
+
+    $prevTr.removeClass();
+
+    $("#tickString > tbody > tr > td.price").each(function (index) {
+        price = parseFloat($(this).text());
+        if (rtv.price >= price) {
+            $tr = $(this).parent();
+            return false;
+        }
+    });
+
+    if (rtv.price === price) {
+        $tr.find(":nth-child(2)").text(rtv.tickSize);
+        $tr.find(":nth-child(3)").text(rtv.sizePercent.toFixed(5));
         $tr.find(":nth-child(3)").attr("class", "size" + rtv.sizeCode);
-        $tr.find(":nth-child(4)").text(rtv.isSingleMarketMaker ? "true" : "FALSE");
-        $tr.find(":nth-child(5)").text(rtv.unixTime - rtv.prevUnixTime);
-        $tr.find(":nth-child(6)").text(rtv.vwap.toFixed(2));
+        $prevTr = $tr;
     }
     else {
-        var fields =
-            "<td>" + rtv.price + "</td>" +
-            "<td class=\"dir" + rtv.direction + "\">" + (rtv.price - rtv.prevPrice) + "</td>" +
-            "<td class=\"size" + rtv.sizeCode + "\">" + rtv.size + "</td>" +
-            "<td>" + (rtv.isSingleMarketMaker ? "true" : "FALSE") + "</td>" +
-            "<td>" + (rtv.unixTime - rtv.prevUnixTime) + "</td>" +
-            "<td>" + rtv.vwap.toFixed(2) + "</td>";
+        var newTr =
+            "<tr>" +
+            "<td class=\"price\">" + rtv.price + "</td>" +
+            "<td>" + rtv.tickSize + "</td>" +
+            "<td class=\"size" + rtv.sizeCode + "\">" + rtv.sizePercent.toFixed(5) + "</td>" +
+            "</tr>";
 
-        $('#tickString > tbody')
-            .prepend('<tr>' + fields + '</tr>');
+        if (rtv.price < price || price === 0) {
+            $prevTr = $('#tickString > tbody')
+                .append(newTr);
+        }
+        else {
+            $tr.before(newTr);
+            $prevTr = $tr;
+        }
     }
+
+    $prevTr.addClass("dir" + rtv.direction);
 });
 
 connection.start().then(function () {

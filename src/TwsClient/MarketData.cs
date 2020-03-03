@@ -17,6 +17,7 @@ namespace TwsClient
         private int _tickerId;
         private string _bboExchange;
         private List<RTVolume> _rtvList = new List<RTVolume>();
+        private double _prevPrice;
 
         public EventHandler<RtvTickedEventArgs> RtvTicked;
         protected void OnRtvTicked(RTVolume rtv)
@@ -28,7 +29,6 @@ namespace TwsClient
         {
             _readerSignal = new EReaderMonitorSignal();
             _clientSocket = new EClientSocket(this, _readerSignal);
-            _rtvList.Add(new RTVolume(null, 0, 0, 0));
         }
 
         public void Start()
@@ -71,18 +71,42 @@ namespace TwsClient
 
         private void ProcessRtvTicked(string value)
         {
-            var prevRtv = _rtvList[0];
-            var rtv = new RTVolume(value, prevRtv.Price, prevRtv.UnixTime, prevRtv.Size);
+            var newRtv = new RTVolume(value);
+            var pos = 0;
+            RTVolume rtv = null;
 
-            OnRtvTicked(rtv);
-
-            _rtvList.Insert(0, rtv);
-
-            if (_rtvList.Count > RTV_LIST_MAX_COUNT)
+            while (pos < _rtvList.Count)
             {
-                _rtvList.RemoveAt(RTV_LIST_MAX_COUNT - 1);
+                rtv = _rtvList[pos];
+                if (newRtv.Price < rtv.Price)
+                {
+                    break;
+                }
+                else if (rtv.Price == newRtv.Price)
+                {
+                    rtv.PrevUnixTime = rtv.UnixTime;
+                    rtv.UnixTime = newRtv.UnixTime;
+                    rtv.Size += newRtv.TickSize;
+                    rtv.TickSize = newRtv.TickSize;
+                    break;
+                }
+
+                pos++;
             }
 
+            if (rtv != null && rtv.Price == newRtv.Price)
+            {
+                rtv.PrevPrice = _prevPrice;
+                OnRtvTicked(rtv);
+            }
+            else
+            {
+                _rtvList.Insert(pos, newRtv);
+                newRtv.PrevPrice = _prevPrice;
+                OnRtvTicked(newRtv);
+            }
+
+            _prevPrice = newRtv.Price;
         }
 
         #endregion
